@@ -24,8 +24,8 @@ function log(str){
 }
 
 function weibo_login(login_callback) {
-    var userName = "weibo_name";
-    var password = "weibo_password";
+    var userName = "weibo";
+    var password = "weibo";
 
     var preLoginUrl = "http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=&rsakt=mod&checkpin=1&client=ssologin.js(v1.4.11)&_=" + (new Date()).getTime();
 
@@ -44,14 +44,14 @@ function weibo_login(login_callback) {
 
             var loginUrl = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.18)';
             var loginPostData = {
-                entry: "weibo",
+                entry: "sinawap", //"weibo"
                 gateway: "1",
                 from: "",
                 savestate: "7",
                 useticket: "1",
                 vsnf: "1",
                 su: "",
-                service: "miniblog",//"miniblog",
+                service: "sinawap",//"miniblog",
                 servertime: "",
                 nonce: "",
                 pwencode: "rsa2",
