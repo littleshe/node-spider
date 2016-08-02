@@ -7,68 +7,134 @@
 <style>
 	.result,.loading{display:none}
 	.thread_list,.reply_list{max-height:300px;overflow:auto}
-	.result a em{color:red}
+	.result a em,.wb_list em{color:red;font-weight:bold}
+	.nav-tabs{margin-bottom:30px}
+	.topic{background:#ccc;margin-bottom:15px;}
+	.tip{ position:absolute;top:-25px;left:0}
 </style>
 </head>
 
 <body style="margin:20px">
 <div class="container-fluid" style="max-width:600px">
-<form>
-  <div class="form-group">
-	<label>贴吧名称</label>
-    <input type="text" name="name" class="form-control" required value="csgo">
-  </div>
-  <div class="form-group">
-	<label>关键词</label>
-    <input type="text" name="kw" class="form-control" required value="完美世界">
-  </div>
-  <div class="form-group">
-	<label>时间限制</label>
-    <input type="date" name="date" class="form-control">
-  </div>
-  <div class="form-group">
-    <label><input type="checkbox" name="only_thread" checked>只查找主题帖标题</label>
-  </div>
-  <button type="submit" class="btn btn-default" id="search">Submit</button>
-  <span class="loading">正在处理中。。。</span>
-</form>
-<div class="result">
-    <h3>结果显示：</h3>
-    <p>主题帖数量：<b class="tn"></b> ， 带有关键字的主题帖数量：<b class="tn1"></b></p>
-    <p>回帖数量：<b class="rn"></b></p>
-    <h4>所有主题帖：</h4>
-    <ol class="thread_list"></ol>
-    <h4>所有回帖：</h4>
-    <ol class="reply_list"></ol>
+<ul class="nav nav-tabs" role="tablist" id="myTabs">
+    <li role="presentation" class="active"><a href="#tieba" aria-controls="tieba" role="tab" data-toggle="tab">贴吧</a></li>
+    <li role="presentation"><a href="#weibo" aria-controls="weibo" role="tab" data-toggle="tab">微博</a></li>
+ </ul>
+
+<div class="tab-content">
+    <div role="tabpanel" class="tab-pane active" id="tieba">
+        <form>
+          <div class="form-group">
+            <label>贴吧名称</label>
+            <input type="text" name="name" class="form-control" required value="csgo">
+          </div>
+          <div class="form-group">
+            <label>关键词</label>
+            <input type="text" name="kw" class="form-control" required value="完美世界">
+          </div>
+          <div class="form-group">
+            <label>时间限制</label>
+            <input type="date" name="date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label><input type="checkbox" name="only_thread" checked>只查找主题帖标题</label>
+          </div>
+          <button type="submit" class="btn btn-default">Submit</button>
+          <span class="loading">正在处理中。。。</span>
+        </form>
+        <div class="result">
+            <h3>结果显示：</h3>
+            <p>主题帖数量：<b class="tn"></b> ， 带有关键字的主题帖数量：<b class="tn1"></b></p>
+            <p>回帖数量：<b class="rn"></b></p>
+            <h4>所有主题帖：</h4>
+            <ol class="thread_list"></ol>
+            <h4>所有回帖：</h4>
+            <ol class="reply_list"></ol>
+        </div>
+    </div>
+    <div role="tabpanel" class="tab-pane" id="weibo" style="position:relative">
+		<div class="tip"></div>
+    	<form>
+          <div class="form-group">
+            <label>链接地址</label>
+            <input type="text" name="url" class="form-control" required value="http://weibo.com/5980136393/E1FtcF5YK?type=comment">
+          </div>
+          <div class="form-group">
+            <label>关键词</label>
+            <input type="text" name="kw" class="form-control" required value="我">
+          </div>
+		  <!--
+          <div class="form-group form-inline">
+            <label>时间限制</label>
+           <div> 开始时间 <input type="date" name="start_date" class="form-control" style="width:150px">
+            &nbsp;&nbsp;&nbsp;&nbsp;结束时间 <input type="date" name="end_date" class="form-control" style="width:150px"></div>
+          </div>
+		  -->
+          <button type="submit" class="btn btn-default">Submit</button>
+          <span class="loading">正在处理中。。。</span>
+        </form>
+        <div class="result">
+            <h3>结果显示：</h3>
+			<div class="topic"></div>
+			<ul class="nav nav-pills" id="weibo_tab">
+				<li class="active" type="repost"><a href="javascript:void(0)">转发</a></li>
+				<li type="comment"><a href="javascript:void(0)">评论</a></li>
+				</ul>
+            <p>总数量：<b class="tn"></b>，带有关键字：<b class="kn"></b></p>
+			<ol class="wb_list"></ol>
+        </div>
+    </div>
 </div>
 <script src="/js/jquery.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
 <script>
 $(function(){
-	
+ 
+ var init_weibo_login = false
+
+ $('#myTabs a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+  if($(this).attr('aria-controls') == 'weibo' && init_weibo_login==false){	
+	 login_wb() 
+  }
+})
+
+ function login_wb(){	
+	$('#weibo .tip').html('正在登录微博...')
+	  $.get('/weibo_login',function(){	
+		 $('#weibo .tip').html('成功登录微博！ <a href="javascript:void(0)" class="relogin">重新登录</a>') 
+		 init_weibo_login = true
+	}) 
+ }
+ 
+ $('#weibo').on('click','.relogin',login_wb)
+
  function s(str){
 	if(str){
  		return (new Date(str)).getTime()
 	}
 	return null
  }
+
 		
- $('form').submit(function(e){
+ $('#tieba form').submit(function(e){
 	
 	e.preventDefault();
-	$('.loading').show()
-	var filter_date = s($('[name=date]').val())
+	$('#tieba .loading').show()
+	var filter_date = s($('#tieba [name=date]').val())
 	$.ajax({	
 		url: '/search_tieba',
 		data: {	
 			isnew: 1,
-			kw: $('[name=name]').val(),
-			qw: $('[name=kw]').val(),
-			only_thread: $('[name=only_thread]')[0].checked ? 1 : 0
+			kw: $('#tieba [name=name]').val(),
+			qw: $('#tieba [name=kw]').val(),
+			only_thread: $('#tieba [name=only_thread]')[0].checked ? 1 : 0
 		},
 		dataType: 'json',
 		success: function(data){
-			$('.loading').hide()
-			$('.result').show()
+			$('#tieba .loading').hide()
+			$('#tieba .result').show()
 			var tn = 0;
 			var tn1 = 0;
 			var rn = 0
@@ -88,16 +154,71 @@ $(function(){
 					}
 				}
 			})
-			$('.tn').html(tn)
-			$('.rn').html(rn)
-			$('.tn1').html(tn1)
-			$('.thread_list').html(thread_html)
-			$('.reply_list').html(reply_html)
+			$('#tieba .tn').html(tn)
+			$('#tieba .rn').html(rn)
+			$('#tieba .tn1').html(tn1)
+			$('#tieba .thread_list').html(thread_html)
+			$('#tieba .reply_list').html(reply_html)
 		}
 	})
 	
  })
+ 
+ function formatDate(date){	
+ 	return date.getFullYear() +　z(date.getMonth()+1) + z(date.getDay())
+ }
+ 
+ function z(n){	
+ 	return n < 10 ? '0' + n : n
+ }
+
+ function searchWb(type){	
+	$('#weibo .loading').show()
+	var url = $('#weibo [name=url]').val().replace('http://','').split('?')[0].split('/')
 	
+	$.ajax({	
+		url: '/search_weibo',
+		data: {
+			uid: url[1],
+			vid: url[2],
+			type: type, //repost
+			kw: $('#weibo [name=kw]').val()
+		},
+		dataType: 'json',
+		success: function(data){
+			$('#weibo .loading').hide()
+			$('#weibo .result').show()
+			$('#weibo .topic').html(data.topic)
+			var html = ''
+			var kn = 0
+			$.each(data.data,function(i,el){
+				var text = el.title
+				if(text.indexOf(data.kw) > -1){
+					var req = new RegExp('('+data.kw+')','g') 
+					text = text.replace(req,'<em>$1</em>')
+					kn++
+				}	
+				html += '<li>'+ text +'</li>'
+			})
+			$('#weibo .wb_list').html(html)
+			$('#weibo .tn').html(data.data.length)
+			$('#weibo .kn').html(kn)
+		}
+	})
+ }
+ 
+ $('#weibo form').submit(function(e){
+	e.preventDefault();
+	searchWb('repost')	
+	$('#weibo_tab li').removeClass('active').eq(0).addClass('active')
+ })
+
+ $('#weibo').on('click','#weibo_tab li',function(){
+	 searchWb($(this).attr('type'))
+	 $('#weibo_tab li').removeClass('active')
+	 $(this).addClass('active')
+ })
+
 })
 </script>
 
