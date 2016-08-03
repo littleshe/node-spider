@@ -17,8 +17,8 @@ router.get('/',function(){
 router.get('/search_tieba', search_tieba);
 router.get('/search_weibo', weibo.search_weibo);
 router.get('/weibo_login', function(req,res){
-	weibo.weibo_login(function(){	
-		res.send({msg:'登录微博成功。',state:1})
+	weibo.weibo_login(function(data){	
+		res.send(data)
 	})	
 });
 

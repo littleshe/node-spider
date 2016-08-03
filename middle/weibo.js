@@ -24,8 +24,8 @@ function log(str){
 }
 
 function weibo_login(login_callback) {
-    var userName = "weibo";
-    var password = "weibo";
+    var userName = "weibo_user";
+    var password = "weibo_password";
 
     var preLoginUrl = "http://login.sina.com.cn/sso/prelogin.php?entry=weibo&callback=sinaSSOController.preloginCallBack&su=&rsakt=mod&checkpin=1&client=ssologin.js(v1.4.11)&_=" + (new Date()).getTime();
 
@@ -119,11 +119,12 @@ function weibo_login(login_callback) {
         },
         function (responseCode, body, callback) {
             console.log("登录完成");
-            login_callback()
+            login_callback({islogin:true,msg:'登录成功'})
             //var responseJson = getJsonObj(body);
             //console.log(responseJson);
         }
     ], function (err) {
+        login_callback({islogin:false,msg:'登录失败',err:err})
         console.log(err)
     });
 }
@@ -149,7 +150,8 @@ function request_weibo(param,callback){
 	var url = 'http://weibo.cn/'+ param.type +'/' + param.vid + '?' + qs.stringify({uid:param.uid,page:param.page})
 
 	request.get({url:url,headers: {
-   	 'User-Agent': 'spider'
+   	 'User-Agent' : 'spider',
+     'Connection' : 'keep-alive'
 	}},function(err,response,body){
 		if(err){
 			log("微博内容查找失败:");
@@ -157,7 +159,7 @@ function request_weibo(param,callback){
 			return;
 		}
 		var $ = cheerio.load(body)
-		
+		console.log('page:' + param.page)
 		callback($,body)
 	});
 }
@@ -202,7 +204,7 @@ function getItemData($){
 		var $post = $(this)
 		var date = $post.find('.ct')
 		var hot = $post.find('.kt')
-		if(date.length && !hot.lenght && $post.attr('id') != 'M_'){	
+		if(date.length && $post.attr('id') != 'M_'){	
 			var title = $post.html()
 			var item = {	
 				date: date.html(),
@@ -222,8 +224,8 @@ function getPageData($){
 	}
 	return {	
 		topic: $('#M_').html(),
-		rn: m(/>&#x8F6C;&#x53D1;\[(\d+)\]/),
-		cn: m(/>&#x8BC4;&#x8BBA;\[(\d+)\]/),
+		//rn: m(/>&#x8F6C;&#x53D1;\[(\d+)\]/),
+		//cn: m(/>&#x8BC4;&#x8BBA;\[(\d+)\]/),
 		data: []
 	}
 }
@@ -239,6 +241,8 @@ function search_weibo(req, res, next){
 				var j = cheerio.load('<body>'+ req.query.kw +'</body>')
 				result.kw = j('body').html()
 			}
+			console.log('total : ' + pg)
+			result.pg = pg
 			if(pg === 1){
 				result.data = getItemData(html)
 				res.send(result)
