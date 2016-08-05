@@ -104,10 +104,10 @@ $(function(){
 	$('#weibo .tip').html('正在登录微博...')
 	  $.get('/weibo_login',function(res){
 		  if(res.islogin){	
-		 	$('#weibo .tip').html('成功登录微博！ <a href="javascript:void(0)" class="relogin">重新登录</a>') 
+		 	$('#weibo .tip').html(res.userName+' 成功登录微博！ <a href="javascript:void(0)" class="relogin">重新登录</a>') 
 			init_weibo_login = true
 		  }else{	
-			$('#weibo .tip').html('登录失败！ <a href="javascript:void(0)" class="relogin">重新登录</a>') 
+			$('#weibo .tip').html(res.userName+'登录失败！ <a href="javascript:void(0)" class="relogin">重新登录</a>') 
 			alert(JSON.stringify(res))  
 		  }
 	}) 

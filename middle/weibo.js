@@ -44,7 +44,7 @@ function weibo_login(login_callback) {
 
             var loginUrl = 'http://login.sina.com.cn/sso/login.php?client=ssologin.js(v1.4.18)';
             var loginPostData = {
-                entry: "sinawap", //"weibo"
+                entry: "sinawap", //"weibo" | "sinawap"
                 gateway: "1",
                 from: "",
                 savestate: "7",
@@ -60,7 +60,7 @@ function weibo_login(login_callback) {
                 sr: "1366*768",
                 encoding: "UTF-8",
                 prelt: "282",
-                url: "http://weibo.cn",
+                url: "http://weibo.cn/",
                 returntype: "META"
             };
             /**
@@ -87,14 +87,14 @@ function weibo_login(login_callback) {
 
             request.post({
                 "uri": loginUrl,
-                "encoding": null,  //GBK编码 需要额外收到处理,
+                "encoding": "utf-8",  //GBK编码 需要额外收到处理,
                  form: loginPostData
 
             }, callback);
         },
         function (responseCode, body, callback) {
-            body = iconv.decode(body,"GBK");
 
+           // body = iconv.decode(body,"UTF-8");
             var errReason = /reason=(.*?)\"/;
             var errorLogin = body.match(errReason);
 
@@ -102,29 +102,42 @@ function weibo_login(login_callback) {
                callback("登录失败,原因:" + errorLogin[1]);
             }
             else {
-                var urlReg = /location\.replace\(\'(.*?)\'\)./;
-                var urlLoginAgain = body.match(urlReg);
-
-                if (urlLoginAgain) {
-
-                    request({
-                        "uri": urlLoginAgain[1],
-                        "encoding": "utf-8"
-                    }, callback);
+                var tryTime = 0
+                var relogin = function(body){
+                    tryTime++
+                    if(tryTime > 10){    
+                        callback('登陆超时，原因：超时。')
+                    }else{
+                        console.log('尝试登陆：' + tryTime) 
+                        var urlReg = /location\.replace\(\'(.*?)\'\)./;
+                        var urlLoginAgain = body.match(urlReg);
+                        if (urlLoginAgain) {
+                            request({
+                                "uri": urlLoginAgain[1],
+                                "encoding": "utf-8"
+                            }, function(err,res,bd){  
+                                relogin(bd)
+                            });
+                        }else {
+                            request({
+                                "uri": 'http://weibo.cn/',
+                                "encoding": "utf-8"
+                            }, callback);
+                        }
+                    }
                 }
-                else {
-                    callback("match failed");
-                }
+                relogin(body)
+                
             }
         },
         function (responseCode, body, callback) {
             console.log("登录完成");
-            login_callback({islogin:true,msg:'登录成功'})
+            login_callback({islogin:true,msg:'登录成功',userName:userName})
             //var responseJson = getJsonObj(body);
             //console.log(responseJson);
         }
     ], function (err) {
-        login_callback({islogin:false,msg:'登录失败',err:err})
+        login_callback({islogin:false,msg:'登录失败',err:err,userName:userName})
         console.log(err)
     });
 }
@@ -159,7 +172,6 @@ function request_weibo(param,callback){
 			return;
 		}
 		var $ = cheerio.load(body)
-		console.log('page:' + param.page)
 		callback($,body)
 	});
 }
@@ -241,7 +253,6 @@ function search_weibo(req, res, next){
 				var j = cheerio.load('<body>'+ req.query.kw +'</body>')
 				result.kw = j('body').html()
 			}
-			console.log('total : ' + pg)
 			result.pg = pg
 			if(pg === 1){
 				result.data = getItemData(html)
